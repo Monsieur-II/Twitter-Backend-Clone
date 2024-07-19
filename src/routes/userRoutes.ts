@@ -4,12 +4,18 @@ const {
   validateNewUserAsync,
   validateUpdateUserAsync,
 } = require('../middleware/validateUser');
+const { authenticateToken } = require('../middleware/authenticate');
 
 const userRoutes = Router();
 
-userRoutes.get('/', UsersController.getUsers);
+userRoutes.get('/', authenticateToken, UsersController.getUsers);
 userRoutes.post('/', validateNewUserAsync, UsersController.postUser);
-userRoutes.put('/:id', validateUpdateUserAsync, UsersController.putUser);
-userRoutes.delete('/:id', UsersController.deleteUser);
+userRoutes.put(
+  '/:id',
+  authenticateToken,
+  validateUpdateUserAsync,
+  UsersController.putUser
+);
+userRoutes.delete('/:id', authenticateToken, UsersController.deleteUser);
 
 export default userRoutes;

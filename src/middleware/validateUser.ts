@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -9,15 +10,15 @@ const validateNewUserAsync = async (
   next: NextFunction
 ) => {
   try {
-    const { name, username, email, dateOfBirth } = req.body;
-    if (!name || !username || !email || !dateOfBirth) {
+    const { name, username, email, dateofbirth, password } = req.body;
+    if (!name || !username || !email || !dateofbirth || !password) {
       res.status(400).json({ message: 'Invalid request' });
       res.end();
       return;
     }
 
     // verify age
-    const dob = new Date(dateOfBirth);
+    const dob = new Date(dateofbirth);
     const now = new Date();
     const diff = now.getTime() - dob.getTime();
     const age = Math.floor(diff / 31536000000);
@@ -48,6 +49,8 @@ const validateNewUserAsync = async (
       res.end();
       return;
     }
+    var hashedPassword = await hashPassword(password);
+    req.body.hashedPassword = hashedPassword;
     next();
   } catch (error) {
     res.status(500).json({ message: 'Something went wrong, please try again' });
@@ -62,7 +65,7 @@ const validateUpdateUserAsync = async (
 ) => {
   try {
     const { id } = req.params;
-    const { name, username, imageUrl, bio, location, website } = req.body;
+    const { username, imageUrl, website } = req.body;
 
     const userExists = await prisma.user.findUnique({
       where: {
@@ -102,9 +105,9 @@ const validateUpdateUserAsync = async (
   }
 };
 
-function isValidHttpUrl(string: any) {
+function isValidHttpUrl(uri: any) {
   try {
-    const url = new URL(string);
+    const url = new URL(uri);
     const validProtocols = ['http:', 'https:'];
 
     if (!validProtocols.includes(url.protocol)) {
@@ -122,6 +125,17 @@ function isValidHttpUrl(string: any) {
     return true;
   } catch (_) {
     return false;
+  }
+}
+
+async function hashPassword(password: string): Promise<string> {
+  try {
+    const salt = await bcrypt.genSalt(10);
+
+    const hashedPassword = await bcrypt.hash(password, salt);
+    return hashedPassword;
+  } catch (error) {
+    throw new Error('Error occurred while saving user');
   }
 }
 

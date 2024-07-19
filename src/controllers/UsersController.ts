@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 class UsersController {
   static async postUser(req: Request, res: Response): Promise<void> {
-    const { name, username, email } = req.body;
+    const { name, username, email, hashedPassword } = req.body;
     const result = await prisma.user.create({
       data: {
         name,
         userName: username,
         email,
+        password: hashedPassword,
       },
     });
     if (!result) {
@@ -18,7 +19,13 @@ class UsersController {
       res.end();
       return;
     }
-    res.status(201).json({ result });
+    res.status(201).json({
+      id: result.id,
+      name: result.name,
+      username: result.userName,
+      email: result.email,
+    });
+
     res.end();
   }
 
