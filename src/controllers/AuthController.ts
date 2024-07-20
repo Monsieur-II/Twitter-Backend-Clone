@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
+const expiration = process.env.JWT_EXPIRATION;
 
 const prisma = new PrismaClient();
 
@@ -37,7 +38,7 @@ class AuthController {
       }
 
       const token = jwt.sign({ id: user.id }, JWT_SECRET, {
-        expiresIn: 86400, // 24 hours
+        expiresIn: expiration,
       });
       res.status(200).json({ token });
     } catch (error) {

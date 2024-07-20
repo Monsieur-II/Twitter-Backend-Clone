@@ -20,8 +20,8 @@ model User {
   isVerified Boolean  @default(false)
   isPrivate Boolean  @default(false)
   posts     Post[]
-//   likes     Post[]   @relation("UserLikes")
-//     retweets  Post[]   @relation("UserRetweets")
+  likes     Like[]
+  comments  Comment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -34,8 +34,27 @@ model Post {
   updatedAt  DateTime @updatedAt
   userId   String
   user     User     @relation(fields: [userId], references: [id])
-  impressions Int     @default(0)
-  // like count
-//   likes      User[]   @relation("UserLikes")
-//   retweets   User[]   @relation("UserRetweets")
+  likes      Like[]
+  comments Comment[]
+}
+
+model Like {
+  id        String    @id @default(uuid())
+  userId    String
+  postId   String
+  user      User      @relation(fields: [userId], references: [id])
+  post     Post      @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId   String
+  postId   String
+  user     User     @relation(fields: [userId], references: [id])
+  post     Post     @relation(fields: [postId], references: [id])
 }

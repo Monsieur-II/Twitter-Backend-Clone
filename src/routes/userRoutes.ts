@@ -9,6 +9,7 @@ const { authenticateToken } = require('../middleware/authenticate');
 const userRoutes = Router();
 
 userRoutes.get('/', authenticateToken, UsersController.getUsers);
+userRoutes.get('/:id', authenticateToken, UsersController.getUserById);
 userRoutes.post('/', validateNewUserAsync, UsersController.postUser);
 userRoutes.put(
   '/:id',

@@ -9,8 +9,9 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   if (!token || !token.startsWith('Bearer'))
     return res.status(401).json(unAuthorized);
 
-  jwt.verify(token.split(' ')[1], JWT_SECRET, (err: Error) => {
+  jwt.verify(token.split(' ')[1], JWT_SECRET, (err: Error, user: any) => {
     if (err) return res.sendStatus(403);
+    req.body.userId = user.id;
     next();
   });
 };

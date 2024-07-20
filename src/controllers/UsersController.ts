@@ -35,6 +35,30 @@ class UsersController {
     res.end();
   }
 
+  static async getUserById(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+          },
+        },
+      },
+    });
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      res.end();
+      return;
+    }
+    const { password, ...userWithoutPassword } = user;
+    res.status(200).json(userWithoutPassword);
+    res.end();
+  }
+
   static async putUser(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const { name, username, imageUrl, bio, location, website } = req.body;
@@ -62,6 +86,11 @@ class UsersController {
 
   static async deleteUser(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    if (req.body.userId !== id) {
+      res.status(403).json({ message: 'Unauthorized' });
+      res.end();
+      return;
+    }
     const userExists = await prisma.user.findUnique({
       where: {
         id,
