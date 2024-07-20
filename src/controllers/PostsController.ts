@@ -5,25 +5,19 @@ const prisma = new PrismaClient();
 
 class PostsController {
   static async postPost(req: Request, res: Response): Promise<void> {
-    const { content, userId, image } = req.body;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
+    const { content, user, image } = req.body;
 
     const result = await prisma.post.create({
       data: {
         content,
-        userId,
+        userId: user.id,
         image,
-        userName: user?.name,
+        userName: user.name,
       },
     });
 
     if (!result) {
-      res.status(500).json({ message: 'Unable to create post' });
+      res.status(424).json({ message: 'Failed to create post' });
       res.end();
       return;
     }
@@ -127,13 +121,14 @@ class PostsController {
 
   static async deletePost(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    const { user } = req.body;
 
     const post = await prisma.post.findUnique({
       where: {
         id,
       },
     });
-    if (!post || req.body.userId !== post?.userId) {
+    if (!post || user.id !== post?.userId) {
       res.status(403).json({ message: 'Unauthorized' });
       res.end();
       return;
@@ -145,11 +140,11 @@ class PostsController {
       },
     });
     if (!isDeleted) {
-      res.status(424).json({ message: 'Unable to delete post' });
+      res.status(424).json({ message: 'Failed to delete post' });
       res.end();
       return;
     }
-    res.sendStatus(204);
+    res.status(200).json({ message: 'Post deleted' });
   }
 }
 

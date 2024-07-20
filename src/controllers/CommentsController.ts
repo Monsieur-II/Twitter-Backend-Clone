@@ -5,25 +5,21 @@ const prisma = new PrismaClient();
 
 class CommentsController {
   static async postComment(req: Request, res: Response): Promise<void> {
-    const { content, userId, postId } = req.body;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
+    const { content, postId, user } = req.body;
 
     const result = await prisma.comment.create({
       data: {
         content,
-        userId,
+        userId: user.id,
         postId,
-        userName: user?.name,
+        userName: user.name,
       },
     });
 
     if (!result) {
-      res.status(500).json({ message: 'Unable to post comment' });
+      res
+        .status(424)
+        .json({ message: 'Failed to post comment, please try again' });
       res.end();
       return;
     }
@@ -44,13 +40,24 @@ class CommentsController {
 
   static async updateComment(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const { content } = req.body;
+    const { content, user } = req.body;
 
-    const user = await prisma.user.findUnique({
+    var existingComment = await prisma.comment.findUnique({
       where: {
-        id: req.body.userId,
+        id,
       },
     });
+    if (!existingComment) {
+      res.status(404).json({ message: 'Comment not found' });
+      res.end();
+      return;
+    }
+
+    if (existingComment.userId !== user.id) {
+      res.status(403).json({ message: 'Forbidden' });
+      res.end();
+      return;
+    }
 
     if (user!.isVerified === false) {
       res.status(403).json({ message: 'Subscribe to Premium version' });
@@ -68,7 +75,9 @@ class CommentsController {
     });
 
     if (!comment) {
-      res.status(424).json({ message: 'Unable to update comment' });
+      res
+        .status(424)
+        .json({ message: 'Failed to update comment. Please try again' });
       res.end();
       return;
     }
@@ -78,6 +87,7 @@ class CommentsController {
 
   static async deleteComment(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    const { user } = req.body;
 
     const comment = await prisma.comment.findUnique({
       where: {
@@ -85,8 +95,8 @@ class CommentsController {
       },
     });
 
-    if (!comment || req.body.userId !== comment?.userId) {
-      res.status(403).json({ message: 'Unauthorized' });
+    if (!comment || user.id !== comment.userId) {
+      res.status(403).json({ message: 'Forbidden' });
       res.end();
       return;
     }

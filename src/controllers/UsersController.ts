@@ -15,7 +15,7 @@ class UsersController {
       },
     });
     if (!result) {
-      res.status(500).json({ message: 'Unable to create user' });
+      res.status(424).json({ message: 'Failed to create user' });
       res.end();
       return;
     }

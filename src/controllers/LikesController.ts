@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 class LikesController {
   static async likePost(req: Request, res: Response): Promise<void> {
-    const { postId, userId } = req.body;
+    const { postId, user } = req.body;
 
     const post = await prisma.post.findUnique({
       where: {
@@ -18,34 +18,28 @@ class LikesController {
       res.end();
       return;
     }
-    const existingLike = await prisma.like.findFirst({
+    const like = await prisma.like.findFirst({
       where: {
         postId,
-        userId,
+        userId: user.id,
       },
     });
-    if (existingLike) {
+    if (like) {
       res.status(400).json({ message: 'User has already liked this post' });
       res.end();
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
     const result = await prisma.like.create({
       data: {
         postId,
-        userId,
-        userName: user?.name,
+        userId: user.id,
+        userName: user.name,
       },
     });
 
     if (!result) {
-      res.status(500).json({ message: 'Unable to like post' });
+      res.status(424).json({ message: 'Failed to like post' });
       res.end();
       return;
     }
@@ -54,15 +48,15 @@ class LikesController {
   }
 
   static async unlikePost(req: Request, res: Response): Promise<void> {
-    const { postId, userId } = req.body;
-    const existingLike = await prisma.like.findFirst({
+    const { postId, user } = req.body;
+    const like = await prisma.like.findFirst({
       where: {
         postId,
-        userId,
+        userId: user.id,
       },
     });
 
-    if (!existingLike) {
+    if (!like) {
       res.status(400).json({ message: 'User has not liked this post' });
       res.end();
       return;
@@ -70,12 +64,12 @@ class LikesController {
 
     const result = await prisma.like.delete({
       where: {
-        id: existingLike.id,
+        id: like.id,
       },
     });
 
     if (!result) {
-      res.status(500).json({ message: 'Unable to unlike post' });
+      res.status(424).json({ message: 'Failed to unlike post' });
       res.end();
       return;
     }
