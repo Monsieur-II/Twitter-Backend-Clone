@@ -1,119 +1,169 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 class CommentsController {
-  static async postComment(req: Request, res: Response): Promise<void> {
-    const { content, postId, user } = req.body;
+  static async postComment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { content, postId, user } = req.body;
 
-    const result = await prisma.comment.create({
-      data: {
-        content,
-        userId: user.id,
-        postId,
-        userName: user.name,
-      },
-    });
+      const postExists = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+      });
 
-    if (!result) {
-      res
-        .status(424)
-        .json({ message: 'Failed to post comment, please try again' });
-      res.end();
-      return;
+      if (!postExists) {
+        res.status(404).json({ message: 'Post not found' });
+        res.end();
+        return;
+      }
+
+      const result = await prisma.comment.create({
+        data: {
+          content,
+          userId: user.id,
+          postId,
+          userName: user.name,
+        },
+      });
+
+      if (!result) {
+        res
+          .status(424)
+          .json({ message: 'Failed to post comment, please try again' });
+        res.end();
+        return;
+      }
+
+      res.status(201).json({ result });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(201).json({ result });
   }
 
-  static async getPostComments(req: Request, res: Response): Promise<void> {
-    const { postId } = req.params;
-    const comments = await prisma.comment.findMany({
-      where: {
-        postId,
-      },
-    });
+  static async getPostComments(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { postId } = req.params;
+      const comments = await prisma.comment.findMany({
+        where: {
+          postId,
+        },
+      });
 
-    res.status(200).json(comments);
+      res.status(200).json(comments);
+    } catch (error) {
+      next(error);
+    }
   }
 
-  static async updateComment(req: Request, res: Response): Promise<void> {
-    const { id } = req.params;
-    const { content, user } = req.body;
+  static async updateComment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { content, user } = req.body;
 
-    var existingComment = await prisma.comment.findUnique({
-      where: {
-        id,
-      },
-    });
-    if (!existingComment) {
-      res.status(404).json({ message: 'Comment not found' });
-      res.end();
-      return;
+      var existingComment = await prisma.comment.findUnique({
+        where: {
+          id,
+        },
+      });
+      if (!existingComment) {
+        res.status(404).json({ message: 'Comment not found' });
+        res.end();
+        return;
+      }
+
+      if (existingComment.userId !== user.id) {
+        res.status(403).json({ message: 'Forbidden' });
+        res.end();
+        return;
+      }
+
+      if (user!.isVerified === false) {
+        res.status(403).json({ message: 'Subscribe to Premium version' });
+        res.end();
+        return;
+      }
+
+      const comment = await prisma.comment.update({
+        where: {
+          id,
+        },
+        data: {
+          content,
+        },
+      });
+
+      if (!comment) {
+        res
+          .status(424)
+          .json({ message: 'Failed to update comment. Please try again' });
+        res.end();
+        return;
+      }
+
+      res.status(200).json({ comment });
+    } catch (error) {
+      next(error);
     }
-
-    if (existingComment.userId !== user.id) {
-      res.status(403).json({ message: 'Forbidden' });
-      res.end();
-      return;
-    }
-
-    if (user!.isVerified === false) {
-      res.status(403).json({ message: 'Subscribe to Premium version' });
-      res.end();
-      return;
-    }
-
-    const comment = await prisma.comment.update({
-      where: {
-        id,
-      },
-      data: {
-        content,
-      },
-    });
-
-    if (!comment) {
-      res
-        .status(424)
-        .json({ message: 'Failed to update comment. Please try again' });
-      res.end();
-      return;
-    }
-
-    res.status(200).json({ comment });
   }
 
-  static async deleteComment(req: Request, res: Response): Promise<void> {
-    const { id } = req.params;
-    const { user } = req.body;
+  static async deleteComment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { user } = req.body;
 
-    const comment = await prisma.comment.findUnique({
-      where: {
-        id,
-      },
-    });
+      const comment = await prisma.comment.findUnique({
+        where: {
+          id,
+        },
+      });
 
-    if (!comment || user.id !== comment.userId) {
-      res.status(403).json({ message: 'Forbidden' });
-      res.end();
-      return;
+      if (!comment) {
+        res.status(404).json({ message: 'Comment not found' });
+        res.end();
+        return;
+      }
+
+      if (user.id !== comment.userId) {
+        res.status(403).json({ message: 'Forbidden' });
+        res.end();
+        return;
+      }
+
+      const isDeleted = await prisma.comment.delete({
+        where: {
+          id,
+        },
+      });
+
+      if (!isDeleted) {
+        res.status(424).json({ message: 'Unable to delete comment' });
+        res.end();
+        return;
+      }
+
+      res.status(200).json({ message: 'Comment deleted' });
+    } catch (error) {
+      next(error);
     }
-
-    const isDeleted = await prisma.comment.delete({
-      where: {
-        id,
-      },
-    });
-
-    if (!isDeleted) {
-      res.status(424).json({ message: 'Unable to delete comment' });
-      res.end();
-      return;
-    }
-
-    res.status(200).json({ message: 'Comment deleted' });
   }
 }
 

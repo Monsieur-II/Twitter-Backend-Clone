@@ -42,9 +42,7 @@ class AuthController {
       });
       res.status(200).json({ token });
     } catch (error) {
-      res.status(500).json({
-        message: 'Error logging in user',
-      });
+      next(error);
     }
   }
 }

@@ -11,32 +11,36 @@ const authenticateToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers['authorization'];
-  if (!token || !token.startsWith('Bearer'))
-    return res.status(401).json(unAuthorized);
+  try {
+    const token = req.headers['authorization'];
+    if (!token || !token.startsWith('Bearer'))
+      return res.status(401).json(unAuthorized);
 
-  jwt.verify(
-    token.split(' ')[1],
-    JWT_SECRET,
-    async (err: Error, client: any) => {
-      if (err) return res.sendStatus(401);
-      req.body.userId = client.id;
-      var user: any = await prisma.user.findUnique({
-        where: {
-          id: client.id,
-        },
-      });
+    jwt.verify(
+      token.split(' ')[1],
+      JWT_SECRET,
+      async (err: Error, client: any) => {
+        if (err) return res.sendStatus(401);
+        req.body.userId = client.id;
+        var user: any = await prisma.user.findUnique({
+          where: {
+            id: client.id,
+          },
+        });
 
-      if (!user) {
-        res.status(401).json(unAuthorized);
-        res.end();
-        return;
+        if (!user) {
+          res.status(401).json(unAuthorized);
+          res.end();
+          return;
+        }
+        req.body.user = user;
+
+        next();
       }
-      req.body.user = user;
-
-      next();
-    }
-  );
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = { authenticateToken };

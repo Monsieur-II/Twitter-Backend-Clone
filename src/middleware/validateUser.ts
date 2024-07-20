@@ -53,8 +53,7 @@ const validateNewUserAsync = async (
     req.body.hashedPassword = hashedPassword;
     next();
   } catch (error) {
-    res.status(500).json({ message: 'Something went wrong, please try again' });
-    res.end();
+    next(error);
   }
 };
 
@@ -100,8 +99,7 @@ const validateUpdateUserAsync = async (
     }
     next();
   } catch (error) {
-    res.status(500).json({ message: 'Something went wrong, please try again' });
-    res.end();
+    next(error);
   }
 };
 
