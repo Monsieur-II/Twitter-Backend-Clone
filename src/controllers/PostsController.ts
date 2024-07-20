@@ -99,11 +99,6 @@ class PostsController {
 
   static async deletePost(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    if (req.body.userId !== id) {
-      res.status(403).json({ message: 'Unauthorized' });
-      res.end();
-      return;
-    }
     const post = await prisma.post.delete({
       where: {
         id,
