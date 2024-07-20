@@ -104,13 +104,29 @@ class RepostsController {
   ): Promise<void> {
     try {
       const { postId } = req.params;
-      const reposts = await prisma.repost.findMany({
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.repost.count({
         where: {
           postId,
         },
       });
+      const reposts = await prisma.repost.findMany({
+        where: {
+          postId,
+        },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+      });
 
-      res.status(200).json(reposts);
+      res.status(200).json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: reposts,
+      });
     } catch (error) {
       next(error);
     }

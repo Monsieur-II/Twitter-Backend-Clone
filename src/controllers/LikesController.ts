@@ -100,13 +100,29 @@ class LikesController {
   ): Promise<void> {
     try {
       const { postId } = req.params;
-      const likes = await prisma.like.findMany({
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.like.count({
         where: {
           postId,
         },
       });
+      const likes = await prisma.like.findMany({
+        where: {
+          postId,
+        },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+      });
 
-      res.status(200).json(likes);
+      res.status(200).json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: likes,
+      });
     } catch (error) {
       next(error);
     }

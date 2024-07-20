@@ -43,8 +43,18 @@ class UsersController {
     next: NextFunction
   ): Promise<void> {
     try {
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.user.count();
       const users = await prisma.user.findMany();
-      res.json(users);
+      res.json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: users,
+      });
       res.end();
     } catch (error) {
       next(error);

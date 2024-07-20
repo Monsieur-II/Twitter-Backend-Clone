@@ -54,13 +54,29 @@ class CommentsController {
   ): Promise<void> {
     try {
       const { postId } = req.params;
-      const comments = await prisma.comment.findMany({
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.comment.count({
         where: {
           postId,
         },
       });
+      const comments = await prisma.comment.findMany({
+        where: {
+          postId,
+        },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+      });
 
-      res.status(200).json(comments);
+      res.status(200).json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: comments,
+      });
     } catch (error) {
       next(error);
     }

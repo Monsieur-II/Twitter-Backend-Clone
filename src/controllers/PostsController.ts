@@ -72,25 +72,60 @@ class PostsController {
   ): Promise<void> {
     try {
       const { search } = req.query;
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.post.count({
+        where: {
+          content: {
+            contains: search ? String(search) : '',
+          },
+        },
+      });
+
       const posts = await prisma.post.findMany({
         where: {
           content: {
             contains: search ? String(search) : '',
           },
         },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+        orderBy: [
+          {
+            comments: {
+              _count: 'desc',
+            },
+          },
+          {
+            likes: {
+              _count: 'desc',
+            },
+          },
+          {
+            reposts: {
+              _count: 'desc',
+            },
+          },
+        ],
         include: {
           _count: {
             select: {
-              likes: true,
               comments: true,
+              likes: true,
               reposts: true,
             },
           },
         },
       });
 
-      const sortedPosts = posts.sort((a, b) => b._count.likes - a._count.likes);
-      res.status(200).json(sortedPosts);
+      res.status(200).json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: posts,
+      });
       res.end();
     } catch (error) {
       next(error);
@@ -104,21 +139,55 @@ class PostsController {
   ): Promise<void> {
     try {
       const { id } = req.params;
+      const pageNumber = parseInt(req.query.page as string) || 1;
+      const pageSize = parseInt(req.query.size as string) || 10;
+
+      const totalCount = await prisma.post.count({
+        where: {
+          userId: id,
+        },
+      });
       const posts = await prisma.post.findMany({
         where: {
           userId: id,
         },
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+        orderBy: [
+          {
+            comments: {
+              _count: 'desc',
+            },
+          },
+          {
+            likes: {
+              _count: 'desc',
+            },
+          },
+          {
+            reposts: {
+              _count: 'desc',
+            },
+          },
+        ],
         include: {
           _count: {
             select: {
-              likes: true,
               comments: true,
+              likes: true,
+              reposts: true,
             },
           },
         },
       });
 
-      res.status(200).json(posts);
+      res.status(200).json({
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+        pageNumber,
+        pageSize,
+        data: posts,
+      });
       res.end;
     } catch (error) {
       next(error);
