@@ -107,7 +107,7 @@ class UsersController {
         id,
       },
     });
-    res.status(204).json({ message: 'User deleted successfully' });
+    res.status(200).json({ message: 'User deleted successfully' });
     res.end();
   }
 }

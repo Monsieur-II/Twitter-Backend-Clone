@@ -6,11 +6,19 @@ const prisma = new PrismaClient();
 class PostsController {
   static async postPost(req: Request, res: Response): Promise<void> {
     const { content, userId, image } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
     const result = await prisma.post.create({
       data: {
         content,
         userId,
         image,
+        userName: user?.name,
       },
     });
 
@@ -69,6 +77,26 @@ class PostsController {
     res.end();
   }
 
+  static async getPostsByUser(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const posts = await prisma.post.findMany({
+      where: {
+        userId: id,
+      },
+      include: {
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json(posts);
+    res.end;
+  }
+
   static async updatePost(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
@@ -99,13 +127,29 @@ class PostsController {
 
   static async deletePost(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const post = await prisma.post.delete({
+
+    const post = await prisma.post.findUnique({
       where: {
         id,
       },
     });
-    res.status(200).json(post);
-    res.end();
+    if (!post || req.body.userId !== post?.userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      res.end();
+      return;
+    }
+
+    const isDeleted = await prisma.post.delete({
+      where: {
+        id,
+      },
+    });
+    if (!isDeleted) {
+      res.status(424).json({ message: 'Unable to delete post' });
+      res.end();
+      return;
+    }
+    res.sendStatus(204);
   }
 }
 

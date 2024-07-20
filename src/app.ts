@@ -3,6 +3,7 @@ import userRoutes from './routes/userRoutes';
 import postRoutes from './routes/postRoutes';
 import authRoutes from './routes/authRoutes';
 import likeRoutes from './routes/likeRoutes';
+import commentRoutes from './routes/commentRoutes';
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/likes', likeRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port: ${PORT}`);
