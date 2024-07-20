@@ -36,6 +36,7 @@ class PostsController {
           select: {
             likes: true,
             comments: true,
+            reposts: true,
           },
         },
       },
@@ -61,6 +62,7 @@ class PostsController {
           select: {
             likes: true,
             comments: true,
+            reposts: true,
           },
         },
       },
