@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes';
 import likeRoutes from './routes/likeRoutes';
 import commentRoutes from './routes/commentRoutes';
 import repostRoutes from './routes/repostRoutes';
+import followRoutes from './routes/followRoutes';
 import notFound from './middleware/not_found';
 import errorHandler from './middleware/errorHandler';
 
@@ -34,6 +35,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/likes', likeRoutes);
 app.use('/api/v1/comments', commentRoutes);
 app.use('/api/v1/reposts', repostRoutes);
+app.use('/api/v1/follows', followRoutes);
 
 // 404 handler
 app.use(notFound);

@@ -1,4 +1,4 @@
-# Twitter Backend Clone
+# Twitter Backend Clone 🐦
 
 This project is a backend implementation for a Twitter clone using technologies such as Prisma ORM, Node.js, Express, TypeScript, and PostgreSQL.
 
@@ -57,6 +57,12 @@ Ensure you have the following installed:
    ```
 
    Replace `<username>` and `<password>` with your PostgreSQL username and password.
+
+   Run the command below in your PostgreSQL terminal to give your user superuser privileges if not alredy done to allow Prisma to create the database:
+
+   ```sql
+   ALTER USER postgres WITH SUPERUSER;
+   ```
 
 4. **Run the project**:
 

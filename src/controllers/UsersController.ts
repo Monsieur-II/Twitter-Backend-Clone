@@ -47,7 +47,17 @@ class UsersController {
       const pageSize = parseInt(req.query.size as string) || 10;
 
       const totalCount = await prisma.user.count();
-      const users = await prisma.user.findMany();
+      const users = await prisma.user.findMany({
+        include: {
+          _count: {
+            select: {
+              posts: true,
+              following: true,
+              followers: true,
+            },
+          },
+        },
+      });
       const result = users.map(({ password, ...user }) => user);
 
       res.status(200).json({
@@ -78,6 +88,8 @@ class UsersController {
           _count: {
             select: {
               posts: true,
+              following: true,
+              followers: true,
             },
           },
         },
