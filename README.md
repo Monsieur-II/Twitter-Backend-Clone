@@ -4,11 +4,24 @@ This project is a backend implementation for a Twitter clone using technologies 
 
 ## Technologies
 
-- **Prisma ORM**: A next-generation ORM for Node.js and TypeScript.
+- **Prisma**: A next-generation ORM for Node.js and TypeScript.
 - **Node.js**: A JavaScript runtime built on Chrome's V8 JavaScript engine.
 - **Express**: A minimal and flexible Node.js web application framework.
 - **TypeScript**: A typed superset of JavaScript that compiles to plain JavaScript.
 - **PostgreSQL**: A powerful, open-source object-relational database system.
+- **JWT**: A compact, URL-safe means of representing claims to be transferred between two parties.
+
+## Features
+
+- User authentication and authorisation (signup, login)
+- Request validation
+- Rate limiting
+- Create, read, update, and delete tweets
+- Like and unlike tweets
+- Retweet and unretweet tweets
+- Comment on tweets
+- Pagination
+- Search tweets
 
 ## Getting Started
 

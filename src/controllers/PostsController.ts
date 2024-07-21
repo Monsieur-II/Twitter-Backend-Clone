@@ -17,7 +17,8 @@ class PostsController {
           content,
           userId: user.id,
           image,
-          userName: user.name,
+          userName: user.userName,
+          name: user.name,
         },
       });
 

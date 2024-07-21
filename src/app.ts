@@ -7,6 +7,7 @@ import commentRoutes from './routes/commentRoutes';
 import repostRoutes from './routes/repostRoutes';
 import notFound from './middleware/not_found';
 import errorHandler from './middleware/errorHandler';
+
 const rateLimiter = require('express-rate-limit');
 const cors = require('cors');
 
@@ -27,12 +28,12 @@ app.use(
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/users', userRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/likes', likeRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/reposts', repostRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/likes', likeRoutes);
+app.use('/api/v1/comments', commentRoutes);
+app.use('/api/v1/reposts', repostRoutes);
 
 // 404 handler
 app.use(notFound);

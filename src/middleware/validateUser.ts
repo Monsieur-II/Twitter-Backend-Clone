@@ -76,12 +76,12 @@ const validateUpdateUserAsync = async (
       res.end();
       return;
     }
-    const existingUsername = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: {
         userName: username,
       },
     });
-    if (existingUsername && existingUsername.id !== id) {
+    if (existingUser && existingUser.id !== id) {
       res.status(400).json({ message: 'User with username already exists' });
       res.end();
       return;

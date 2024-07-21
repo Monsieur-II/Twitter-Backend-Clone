@@ -20,9 +20,12 @@ const authenticateToken = async (
       token.split(' ')[1],
       JWT_SECRET,
       async (err: Error, client: any) => {
-        if (err) return res.sendStatus(401);
+        if (err) {
+          console.log(err.message);
+          return res.sendStatus(401);
+        }
         req.body.userId = client.id;
-        var user: any = await prisma.user.findUnique({
+        var user = await prisma.user.findUnique({
           where: {
             id: client.id,
           },

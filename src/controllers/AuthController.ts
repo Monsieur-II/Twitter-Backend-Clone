@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
-const expiration = process.env.JWT_EXPIRATION;
+const expiration = 24 * 60 * 60;
 
 const prisma = new PrismaClient();
 

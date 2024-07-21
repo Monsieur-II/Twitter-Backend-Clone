@@ -48,12 +48,14 @@ class UsersController {
 
       const totalCount = await prisma.user.count();
       const users = await prisma.user.findMany();
-      res.json({
+      const result = users.map(({ password, ...user }) => user);
+
+      res.status(200).json({
         totalCount,
         totalPages: Math.ceil(totalCount / pageSize),
         pageNumber,
         pageSize,
-        data: users,
+        data: result,
       });
       res.end();
     } catch (error) {
@@ -100,7 +102,13 @@ class UsersController {
   ): Promise<void> {
     try {
       const { id } = req.params;
-      const { name, username, imageUrl, bio, location, website } = req.body;
+      const { name, username, imageUrl, bio, location, website, user } =
+        req.body;
+      if (user.id !== id) {
+        res.status(403).json({ message: 'Forbidden' });
+        res.end();
+        return;
+      }
       const result = await prisma.user.update({
         where: {
           id,
@@ -115,11 +123,12 @@ class UsersController {
         },
       });
       if (!result) {
-        res.status(500).json({ message: 'Unable to update user' });
+        res.status(424).json({ message: 'Failed to update user' });
         res.end();
         return;
       }
-      res.status(200).json({ result });
+      const { password, ...response } = user;
+      res.status(200).json({ response });
       res.end();
     } catch (error) {
       next(error);
@@ -133,8 +142,8 @@ class UsersController {
   ): Promise<void> {
     try {
       const { id } = req.params;
-      if (req.body.userId !== id) {
-        res.status(403).json({ message: 'Unauthorized' });
+      if (req.body.user.id !== id) {
+        res.status(403).json({ message: 'Forbidden' });
         res.end();
         return;
       }
