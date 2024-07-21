@@ -19,6 +19,18 @@ class FollowController {
         return;
       }
 
+      const userExists = await prisma.user.findUnique({
+        where: {
+          id: followingId,
+        },
+      });
+
+      if (!userExists) {
+        res.status(404).json({ message: 'User not found' });
+        res.end();
+        return;
+      }
+
       const existingFollow = await prisma.userFollows.findUnique({
         where: {
           followerId_followingId: {
@@ -57,6 +69,24 @@ class FollowController {
     try {
       const { user, followingId } = req.body;
       const followerId = user.id;
+
+      if (followerId === followingId) {
+        res.status(400).json({ message: 'Cannot unfollow yourself' });
+        res.end();
+        return;
+      }
+
+      const userExists = await prisma.user.findUnique({
+        where: {
+          id: followingId,
+        },
+      });
+
+      if (!userExists) {
+        res.status(404).json({ message: 'User not found' });
+        res.end();
+        return;
+      }
 
       const existingFollow = await prisma.userFollows.findUnique({
         where: {
